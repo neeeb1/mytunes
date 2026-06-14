@@ -7,18 +7,19 @@ import (
 )
 
 var (
-	titleStyle  = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("63"))
+	// Aqua theme: bright-cyan titles, aqua highlights, grey "pinstripe" text.
+	titleStyle  = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("51"))
 	helpStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("241"))
 	errStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("196")).Bold(true)
 	okStyle     = lipgloss.NewStyle().Foreground(lipgloss.Color("42")).Bold(true)
-	cursorStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("63")).Bold(true)
+	cursorStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("45")).Bold(true)
 	dimStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("241"))
 	artistStyle = lipgloss.NewStyle().Bold(true)
 
 	syncedStyle     = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
 	remoteOnlyStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("42"))
 	localOnlyStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("220"))
-	modifiedStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("51"))
+	modifiedStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("45"))
 
 	tagCopy   = lipgloss.NewStyle().Foreground(lipgloss.Color("42")).Bold(true)
 	tagUpdate = lipgloss.NewStyle().Foreground(lipgloss.Color("51")).Bold(true)

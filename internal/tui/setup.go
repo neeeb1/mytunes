@@ -117,7 +117,7 @@ func (a *App) finishSetup() (tea.Model, tea.Cmd) {
 
 func (a *App) viewSetup() string {
 	var b strings.Builder
-	b.WriteString(titleStyle.Render("mytunes — setup") + "\n\n")
+	b.WriteString(titleStyle.Render("myTunes — setup") + "\n\n")
 	b.WriteString(dimStyle.Render(fmt.Sprintf("Step %d of %d", a.setupStep+1, len(setupSteps))) + "\n\n")
 
 	st := setupSteps[a.setupStep]

@@ -8,6 +8,9 @@ func (a *App) handleKey(m tea.KeyMsg) (tea.Model, tea.Cmd) {
 		return a, tea.Quit
 	}
 	switch a.screen {
+	case screenSplash:
+		a.screen = a.postSplash // any key skips the splash
+		return a, nil
 	case screenSetup:
 		return a.setupKey(m)
 	case screenDest:

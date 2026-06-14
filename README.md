@@ -1,11 +1,11 @@
-# mytunes
+# myTunes
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-A terminal UI for syncing a remote music library to a local destination such as
-a USB MP3 player. Instead of an all-or-nothing mirror, you browse the server
+A TUI for syncing a remote music library to a local destination such as
+a MP3 player or your laptop. Browse the server
 library, see what already exists on the destination, and pick — per album — what
-to copy or delete in one guided pass.
+to copy or delete in one pass.
 
 Transport is delegated to tools you already trust: mytunes shells out to your
 `ssh` and `rsync` binaries and never reimplements them. SSH auth (keys, agent,
@@ -49,7 +49,7 @@ go build -o mytunes .
 
 ## Quick start
 
-On first launch (or any time with `--setup`), mytunes runs a short wizard that
+On first launch (or any time with `--setup` flag), mytunes runs a wizard that
 asks for:
 
 1. your SSH remote, as `user@host`,
@@ -131,8 +131,9 @@ The TUI moves through a few screens: **setup** (first run only) → **destinatio
 
 ### Loadouts
 
-A loadout is a named set of albums you want present on the destination. From the
-browse screen:
+A loadout is a named set of albums you want present on the destination. Think a 'daily' loadout for everyday listening, 'roadtrip' for your vacation, or 'date night' for that special someone.
+
+From the browse screen:
 
 - `S` saves the current selection as a new loadout.
 - `L` opens the loadout picker, where you can load, rename, duplicate, or delete

@@ -221,7 +221,7 @@ func (a *App) checkAll(v bool) {
 
 func (a *App) viewBrowse() string {
 	var b strings.Builder
-	b.WriteString(titleStyle.Render("mytunes") + dimStyle.Render("  "+a.dest))
+	b.WriteString(titleStyle.Render("myTunes") + dimStyle.Render("  "+a.dest))
 	if a.dryRun {
 		b.WriteString(dimStyle.Render("  [dry-run]"))
 	}

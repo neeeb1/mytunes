@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"strings"
 	"testing"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -210,8 +211,13 @@ func TestSetupWizard(t *testing.T) {
 	}
 
 	a := New(cfg, false, true)
+	// Launch shows the splash first, which then advances to setup.
+	if a.screen != screenSplash {
+		t.Fatalf("screen = %v, want splash", a.screen)
+	}
+	a.Update(splashDoneMsg{})
 	if a.screen != screenSetup {
-		t.Fatalf("screen = %v, want setup", a.screen)
+		t.Fatalf("after splash screen = %v, want setup", a.screen)
 	}
 
 	enter := tea.KeyMsg{Type: tea.KeyEnter}
@@ -253,5 +259,45 @@ func TestSetupWizard(t *testing.T) {
 	}
 	if reloaded.NeedsSetup() {
 		t.Error("reloaded config still NeedsSetup, want fully configured")
+	}
+}
+
+// The splash is the first screen and advances to the destination picker on
+// either the auto-dismiss tick or a keypress.
+func TestSplashFlow(t *testing.T) {
+	a := newApp()
+	if a.screen != screenSplash {
+		t.Fatalf("initial screen = %v, want splash", a.screen)
+	}
+	if a.postSplash != screenDest {
+		t.Fatalf("postSplash = %v, want dest", a.postSplash)
+	}
+
+	// Auto-dismiss tick advances to the destination picker.
+	a.Update(splashDoneMsg{})
+	if a.screen != screenDest {
+		t.Fatalf("after tick screen = %v, want dest", a.screen)
+	}
+
+	// Any key also skips the splash.
+	b := newApp()
+	b.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'x'}})
+	if b.screen != screenDest {
+		t.Fatalf("after key screen = %v, want dest", b.screen)
+	}
+}
+
+func TestRenderLogo(t *testing.T) {
+	// Wide enough: full art (contains a glyph line from logoArt).
+	if got := renderLogo(120); !strings.Contains(got, "::::") {
+		t.Errorf("wide renderLogo missing art: %q", got)
+	}
+	// Too narrow: compact wordmark fallback.
+	got := renderLogo(20)
+	if !strings.Contains(got, "myTunes") {
+		t.Errorf("narrow renderLogo = %q, want compact myTunes", got)
+	}
+	if strings.Contains(got, "::::") {
+		t.Errorf("narrow renderLogo unexpectedly shows full art: %q", got)
 	}
 }

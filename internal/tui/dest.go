@@ -26,7 +26,7 @@ func (a *App) destKey(m tea.KeyMsg) (tea.Model, tea.Cmd) {
 
 func (a *App) viewDest() string {
 	var b strings.Builder
-	b.WriteString(titleStyle.Render("mytunes — music sync") + "\n\n")
+	b.WriteString(titleStyle.Render("myTunes — music sync") + "\n\n")
 	b.WriteString("Pull " + dimStyle.Render(a.cfg.Remote()+":"+a.cfg.RemotePath) + " to a destination.\n\n")
 	b.WriteString("Destination music directory:\n")
 	b.WriteString(a.destInput.View() + "\n")

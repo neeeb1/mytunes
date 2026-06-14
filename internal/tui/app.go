@@ -23,7 +23,8 @@ import (
 type screen int
 
 const (
-	screenSetup screen = iota
+	screenSplash screen = iota
+	screenSetup
 	screenDest
 	screenLoading
 	screenBrowse
@@ -48,10 +49,11 @@ type App struct {
 	cfg    config.Config
 	dryRun bool
 
-	screen screen
-	width  int
-	height int
-	err    error
+	screen     screen
+	postSplash screen // screen to show once the splash dismisses
+	width      int
+	height     int
+	err        error
 
 	destInput textinput.Model
 	dest      string
@@ -135,7 +137,8 @@ func New(cfg config.Config, dryRun, startSetup bool) *App {
 	app := &App{
 		cfg:         cfg,
 		dryRun:      dryRun,
-		screen:      screenDest,
+		screen:      screenSplash,
+		postSplash:  screenDest,
 		destInput:   ti,
 		setupInput:  si,
 		filterInput: fi,
@@ -147,16 +150,17 @@ func New(cfg config.Config, dryRun, startSetup bool) *App {
 		events:      make(chan tea.Msg, 16),
 	}
 	if startSetup {
-		app.screen = screenSetup
+		app.postSplash = screenSetup
 		app.loadSetupStep()
 	}
 	return app
 }
 
-func (a *App) Init() tea.Cmd { return textinput.Blink }
+func (a *App) Init() tea.Cmd { return tea.Batch(textinput.Blink, splashTick()) }
 
 // ---- messages ----
 
+type splashDoneMsg struct{}
 type validateMsg struct {
 	dest string
 	err  error
@@ -292,6 +296,12 @@ func (a *App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		return a.handleKey(m)
 
+	case splashDoneMsg:
+		if a.screen == screenSplash {
+			a.screen = a.postSplash
+		}
+		return a, nil
+
 	case spinner.TickMsg:
 		var cmd tea.Cmd
 		a.spinner, cmd = a.spinner.Update(msg)
@@ -376,6 +386,8 @@ func (a *App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (a *App) View() string {
 	switch a.screen {
+	case screenSplash:
+		return a.viewSplash()
 	case screenSetup:
 		return a.viewSetup()
 	case screenDest:
