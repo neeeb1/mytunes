@@ -9,7 +9,7 @@ func (a *App) viewProgress() string {
 	var b strings.Builder
 	b.WriteString(titleStyle.Render("Syncing") + "\n\n")
 
-	delLine := "  delete: "
+	delLine := "  free: "
 	if a.delTotal > 0 {
 		delLine += fmt.Sprintf("%d/%d albums", a.delDone, a.delTotal)
 	} else {
@@ -42,7 +42,7 @@ func (a *App) viewDone() string {
 	s := a.summary
 	b.WriteString(fmt.Sprintf("  copied  %s (%s)\n", plural(s.CopyAlbums, "album"), humanBytes(s.CopyBytes)))
 	b.WriteString(fmt.Sprintf("  updated %s\n", plural(s.UpdateAlbums, "album")))
-	b.WriteString(fmt.Sprintf("  deleted %s (%s, local)\n\n", plural(s.DeleteAlbums, "album"), humanBytes(s.DeleteBytes)))
+	b.WriteString(fmt.Sprintf("  freed   %s (%s, local)\n\n", plural(s.DeleteAlbums, "album"), humanBytes(s.DeleteBytes)))
 	if a.dryRun {
 		b.WriteString(dimStyle.Render("  [dry-run: nothing was actually changed]") + "\n\n")
 	}

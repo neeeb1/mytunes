@@ -20,12 +20,22 @@ const logoArt = `
 
 // logoMark is a small placeholder disc mark above the wordmark. It is kept
 // separate and trivial on purpose — swap it for your own ASCII art.
-const logoMark = `      _____
-   .-'     '-.
-  /   .---.   \
- |   ( ( ) )   |
-  \   '---'   /
-   '-._____.-'`
+const logoMark = `⠀⠀⠀⠀⠀⠀⠀⢀⡀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⣼⣿⣿⣦⠀⠀⠀
+⠀⠀⠀⠀⠀⢰⣿⠁⠀⢹⡄⠀⠀
+⠀⠀⠀⠀⠀⢸⣿⠀⠀⣾⡇⠀⠀
+⠀⠀⠀⠀⠀⠈⣿⢀⣾⣿⠀⠀⠀
+⠀⠀⠀⠀⠀⣀⣿⣿⣿⠃⠀⠀⠀
+⠀⠀⠀⣠⣾⣿⣿⡟⠁⠀⠀⠀⠀
+⠀⢠⣾⣿⠟⠁⠘⡇⠀⠀⠀⠀⠀
+⢀⣿⡟⠁⠀⣠⣶⣿⣶⣶⣤⡀⠀
+⢸⣿⠀⠀⣼⣿⠟⢻⡛⠛⣿⣷⠀
+⠘⣿⡀⠀⢹⣇⠀⠘⡇⠀⠘⣿⠇
+⠀⠙⣷⡄⠀⠙⠂⠀⣷⠀⣸⡟⠀
+⠀⠀⠈⠙⠷⢦⣤⣤⣼⡞⠋⠀⠀
+⠀⠀⠀⠀⢀⣀⡀⠀⠸⡇⠀⠀⠀
+⠀⠀⠀⠀⣿⣿⣿⠀⢠⡇⠀⠀⠀
+⠀⠀⠀⠀⠈⠛⠷⠖⠋⠀⠀⠀⠀`
 
 // logoPalette is the aqua→blue gradient applied line-by-line to logoArt,
 // top (bright cyan) to bottom (blue).
@@ -49,13 +59,7 @@ func splashTick() tea.Cmd {
 func renderLogo(width int) string {
 	lines := strings.Split(strings.Trim(logoArt, "\n"), "\n")
 
-	logoWidth := 0
-	for _, l := range lines {
-		if w := lipgloss.Width(l); w > logoWidth {
-			logoWidth = w
-		}
-	}
-	if width > 0 && width < logoWidth {
+	if width > 0 && width < blockWidth(logoArt) {
 		return brandStyle.Render("myTunes")
 	}
 
@@ -81,15 +85,21 @@ func centerBlock(s string, w int) string {
 
 func (a *App) viewSplash() string {
 	logo := renderLogo(a.width)
-	w := lipgloss.Width(logo)
+
+	// Place the mark to the left of the wordmark when there's room; otherwise
+	// (narrow terminal / compact wordmark) show the wordmark alone.
+	header := logo
+	if a.width == 0 || a.width >= blockWidth(logoMark)+3+blockWidth(logoArt) {
+		spacedLogo := lipgloss.NewStyle().MarginLeft(3).Render(logo)
+		header = lipgloss.JoinHorizontal(lipgloss.Center, markStyle.Render(logoMark), spacedLogo)
+	}
+	w := lipgloss.Width(header)
 
 	parts := []string{
-		centerBlock(markStyle.Render(logoMark), w),
+		header,
 		"",
-		logo,
-		"",
-		centerBlock(taglineStyle.Render("remote music, synced"), w),
-		centerBlock(helpStyle.Render("press any key"), w),
+		centerBlock(taglineStyle.Render("your library on your device"), w),
+		centerBlock(helpStyle.Render("press any key to continue"), w),
 	}
 	content := strings.Join(parts, "\n")
 
@@ -97,4 +107,15 @@ func (a *App) viewSplash() string {
 		return lipgloss.Place(a.width, a.height, lipgloss.Center, lipgloss.Center, content)
 	}
 	return content
+}
+
+// blockWidth is the widest line of a multi-line string.
+func blockWidth(s string) int {
+	w := 0
+	for _, l := range strings.Split(strings.Trim(s, "\n"), "\n") {
+		if x := lipgloss.Width(l); x > w {
+			w = x
+		}
+	}
+	return w
 }

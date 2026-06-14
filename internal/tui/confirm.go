@@ -55,7 +55,7 @@ func (a *App) viewConfirm() string {
 		fmtline(s.CopyAlbums, s.CopyBytes) + "\n")
 	b.WriteString(tagUpdate.Render("  update ") +
 		fmtline(s.UpdateAlbums, s.UpdateBytes) + "\n")
-	b.WriteString(tagDelete.Render("  delete ") +
+	b.WriteString(tagDelete.Render("  free   ") +
 		fmtline(s.DeleteAlbums, s.DeleteBytes) + dimStyle.Render("  (local only)") + "\n\n")
 
 	b.WriteString("  net space needed: " + humanBytes(s.NeedBytes()) + "\n")
@@ -77,7 +77,7 @@ func (a *App) viewConfirm() string {
 		return b.String()
 	}
 
-	help := "y proceed (deletes first, then copies) · e edit · q abort"
+	help := "y proceed (frees space first, then copies) · e edit · q abort"
 	if a.activeLoadout != "" && a.selectionChanged() {
 		b.WriteString(dimStyle.Render("  loadout '"+a.activeLoadout+"' has unsaved changes") + "\n\n")
 		help += " · u update loadout"

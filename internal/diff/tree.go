@@ -72,10 +72,15 @@ func (a Action) String() string {
 	return ""
 }
 
-// Tag is the pending-action label, blank when there is no change.
+// Tag is the pending-action label, blank when there is no change. Delete is
+// shown to the user as "FREE" (it frees space on the destination) to read less
+// alarmingly than "DELETE".
 func (a Action) Tag() string {
-	if a == None {
+	switch a {
+	case None:
 		return ""
+	case Delete:
+		return "→FREE"
 	}
 	return "→" + a.String()
 }
