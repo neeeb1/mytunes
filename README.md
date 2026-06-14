@@ -7,7 +7,7 @@ a MP3 player or your laptop. Browse the server
 library, see what already exists on the destination, and pick — per album — what
 to copy or delete in one pass.
 
-Transport is delegated to tools you already trust: mytunes shells out to your
+Transport is delegated to tools you already trust: myTunes shells out to your
 `ssh` and `rsync` binaries and never reimplements them. SSH auth (keys, agent,
 `known_hosts`, host-key checking) is whatever your `ssh` is already configured to
 do. No secrets are ever stored.
@@ -49,7 +49,7 @@ go build -o mytunes .
 
 ## Quick start
 
-On first launch (or any time with `--setup` flag), mytunes runs a wizard that
+On first launch (or any time with `--setup` flag), myTunes runs a wizard that
 asks for:
 
 1. your SSH remote, as `user@host`,
