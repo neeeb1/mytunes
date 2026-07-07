@@ -5,7 +5,9 @@ package sync
 
 import (
 	"bufio"
+	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -151,7 +153,7 @@ func (j Job) DryRunBytes(ctx context.Context) (int64, error) {
 	cmd := exec.CommandContext(ctx, "rsync", j.rsyncArgs(ff, "--dry-run", "--stats")...)
 	out, err := cmd.Output()
 	if err != nil {
-		return 0, fmt.Errorf("rsync dry-run failed: %w", err)
+		return 0, fmt.Errorf("rsync dry-run failed: %w%s", err, exitStderr(err))
 	}
 	return parseTransferredBytes(out)
 }
@@ -161,8 +163,10 @@ func (j Job) DryRunBytes(ctx context.Context) (int64, error) {
 // currently being transferred via onFile. Either callback may be nil.
 //
 // -v makes rsync print each transferred path on its own line, interleaved with
-// the --info=progress2 aggregate line, so we can show what's moving even while
-// the overall percentage (across the whole job) climbs slowly.
+// the progress line, so we can show what's moving. With upstream rsync >= 3.1
+// the --info=progress2 percentage covers the whole job; older/openrsync
+// clients (stock macOS) fall back to --progress, whose percentage is per-file
+// (see progressFlag).
 func (j Job) RunCopy(ctx context.Context, progress func(percent float64), onFile func(name string)) error {
 	if len(j.CopyPaths) == 0 {
 		return nil
@@ -173,7 +177,7 @@ func (j Job) RunCopy(ctx context.Context, progress func(percent float64), onFile
 	}
 	defer cleanup()
 
-	front := []string{"-v", "--info=progress2"}
+	front := []string{"-v", progressFlag()}
 	if j.DryRun {
 		front = append(front, "--dry-run")
 	}
@@ -182,7 +186,11 @@ func (j Job) RunCopy(ctx context.Context, progress func(percent float64), onFile
 	if err != nil {
 		return err
 	}
-	cmd.Stderr = os.Stderr
+	// Capture stderr instead of writing to the terminal: inside the TUI's
+	// alt-screen it would be invisible, and it carries the actual reason
+	// rsync failed.
+	var errBuf bytes.Buffer
+	cmd.Stderr = &errBuf
 	if err := cmd.Start(); err != nil {
 		return err
 	}
@@ -201,7 +209,40 @@ func (j Job) RunCopy(ctx context.Context, progress func(percent float64), onFile
 			onFile(name)
 		}
 	}
-	return cmd.Wait()
+	if err := cmd.Wait(); err != nil {
+		if msg := lastLines(errBuf.String(), 5); msg != "" {
+			return fmt.Errorf("rsync: %w: %s", err, msg)
+		}
+		return err
+	}
+	return nil
+}
+
+// exitStderr renders the captured stderr of a failed exec.Cmd.Output call as
+// an error-message suffix, empty when there is nothing useful.
+func exitStderr(err error) string {
+	var ee *exec.ExitError
+	if errors.As(err, &ee) {
+		if msg := lastLines(string(ee.Stderr), 5); msg != "" {
+			return ": " + msg
+		}
+	}
+	return ""
+}
+
+// lastLines returns up to n trailing non-empty lines of s joined with "; ",
+// enough to surface rsync's reason for failing without dumping a transcript.
+func lastLines(s string, n int) string {
+	var lines []string
+	for _, l := range strings.Split(s, "\n") {
+		if l = strings.TrimSpace(l); l != "" {
+			lines = append(lines, l)
+		}
+	}
+	if len(lines) > n {
+		lines = lines[len(lines)-n:]
+	}
+	return strings.Join(lines, "; ")
 }
 
 // transferredFile reports whether a -v output line names a file rsync is
