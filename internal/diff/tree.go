@@ -165,16 +165,19 @@ func computeState(remote, local map[string]int64) State {
 	return Synced
 }
 
-// defaultChecked is the initial checkbox: checked means "should be present".
+// defaultChecked is the initial checkbox: checked means "should be present on
+// the device", so everything already there (Synced, Modified, LocalOnly)
+// starts checked and the initial view doubles as a device inventory.
 func defaultChecked(s State) bool {
-	return s == Synced || s == Modified
+	return s != RemoteOnly
 }
 
 // Action derives the queued action from the album's state and checkbox.
+// Unchecking anything that is on the device queues its deletion.
 //
 //	Synced     checked → None    unchecked → Delete
 //	RemoteOnly checked → Copy    unchecked → None
-//	LocalOnly  checked → Delete  unchecked → None
+//	LocalOnly  checked → None    unchecked → Delete
 //	Modified   checked → Update  unchecked → Delete
 func (al *Album) Action() Action {
 	switch al.State {
@@ -190,9 +193,9 @@ func (al *Album) Action() Action {
 		return None
 	case LocalOnly:
 		if al.Checked {
-			return Delete
+			return None
 		}
-		return None
+		return Delete
 	case Modified:
 		if al.Checked {
 			return Update
@@ -261,6 +264,19 @@ func (ar *Artist) SetChecked(v bool) {
 	for _, al := range ar.Albums {
 		al.Checked = v
 	}
+}
+
+// State reports the artist's aggregate state: when every album shares one
+// state that state carries up; any mixture is Modified (partially synced),
+// matching what the album states mean individually.
+func (ar *Artist) State() State {
+	s := ar.Albums[0].State
+	for _, al := range ar.Albums[1:] {
+		if al.State != s {
+			return Modified
+		}
+	}
+	return s
 }
 
 // Tristate reports the artist's aggregate checkbox: all checked, none checked,

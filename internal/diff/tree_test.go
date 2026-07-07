@@ -25,7 +25,7 @@ func TestStateClassification(t *testing.T) {
 			name:           "local only orphan",
 			local:          []FileEntry{remote("A", "X", "1.mp3", 100)},
 			wantState:      LocalOnly,
-			wantChecked:    false,
+			wantChecked:    true, // on the device → starts checked (keep)
 			wantDefaultAct: None,
 		},
 		{
@@ -90,8 +90,8 @@ func TestActionTransitions(t *testing.T) {
 		{Synced, false, Delete},
 		{RemoteOnly, true, Copy},
 		{RemoteOnly, false, None},
-		{LocalOnly, true, Delete},
-		{LocalOnly, false, None},
+		{LocalOnly, true, None},
+		{LocalOnly, false, Delete},
 		{Modified, true, Update},
 		{Modified, false, Delete},
 	}
@@ -121,7 +121,7 @@ func TestSummarizeAndNeedBytes(t *testing.T) {
 	for _, ar := range tree.Artists {
 		switch ar.Name {
 		case "C":
-			ar.Albums[0].Checked = true // orphan → delete
+			ar.Albums[0].Checked = false // orphan unchecked → delete
 		case "A":
 			for _, al := range ar.Albums {
 				if al.Name == "New" {
@@ -143,6 +143,34 @@ func TestSummarizeAndNeedBytes(t *testing.T) {
 	}
 	if got, want := s.NeedBytes(), int64(1000+500-300); got != want {
 		t.Errorf("NeedBytes = %d, want %d", got, want)
+	}
+}
+
+func TestArtistState(t *testing.T) {
+	tree := Build(
+		[]FileEntry{
+			remote("A", "X", "1.mp3", 1), // A: all RemoteOnly
+			remote("A", "Y", "1.mp3", 1),
+			remote("B", "X", "1.mp3", 1), // B: Synced + RemoteOnly → mixed
+			remote("B", "Y", "1.mp3", 1),
+			remote("C", "X", "1.mp3", 1), // C: all Synced
+		},
+		[]FileEntry{
+			remote("B", "X", "1.mp3", 1),
+			remote("C", "X", "1.mp3", 1),
+			remote("D", "X", "1.mp3", 1), // D: all LocalOnly
+		},
+	)
+	want := map[string]State{
+		"A": RemoteOnly,
+		"B": Modified, // mixed states aggregate to Modified
+		"C": Synced,
+		"D": LocalOnly,
+	}
+	for _, ar := range tree.Artists {
+		if got := ar.State(); got != want[ar.Name] {
+			t.Errorf("artist %s state = %v, want %v", ar.Name, got, want[ar.Name])
+		}
 	}
 }
 

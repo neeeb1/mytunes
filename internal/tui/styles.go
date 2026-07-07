@@ -14,7 +14,6 @@ var (
 	okStyle     = lipgloss.NewStyle().Foreground(lipgloss.Color("42")).Bold(true)
 	cursorStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("45")).Bold(true)
 	dimStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("241"))
-	artistStyle = lipgloss.NewStyle().Bold(true)
 
 	syncedStyle     = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
 	remoteOnlyStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("42"))

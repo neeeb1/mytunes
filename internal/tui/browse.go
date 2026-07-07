@@ -314,7 +314,8 @@ func (a *App) renderRow(i int) string {
 			}
 		}
 		stats := dimStyle.Render(fmt.Sprintf("[%d/%d synced · %d queued]", synced, len(ar.Albums), queued))
-		return fmt.Sprintf("%s%s %s %s %s", cursor, checkbox(ar), arrow, artistStyle.Render(ar.Name), stats)
+		name := stateStyle(ar.State()).Bold(true).Render(ar.Name)
+		return fmt.Sprintf("%s%s %s %s %s", cursor, checkbox(ar), arrow, name, stats)
 	}
 
 	al := r.album
@@ -341,13 +342,10 @@ func checkbox(ar *diff.Artist) string {
 	}
 }
 
-// albumBox renders an album checkbox; LocalOnly is shown distinctly since its
-// only meaningful intent is delete.
+// albumBox renders an album checkbox: checked means "should be on the device"
+// regardless of state.
 func albumBox(al *diff.Album) string {
 	if al.Checked {
-		if al.State == diff.LocalOnly {
-			return "[✗]" // marked for deletion
-		}
 		return "[x]"
 	}
 	return "[ ]"
